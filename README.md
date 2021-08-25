@@ -89,14 +89,19 @@ Ready to run in production? Please [check our deployment guides](https://hexdocs
 ### Important Files That Makes The Project
 
 `lib/nfl_rushing/rushing.ex`
+
 `lib/nfl_rushing_web/controllers/page_controller.ex`
+
 `lib/nfl_rushing_web/live/page_live.ex`
+
 `lib/nfl_rushing_web/live/page_live.html.leex`
 
 ### Modules
 
 **Rushing:** Handles json data, and encodes to csv.
+
 **PageController:** Response with csv files that is generated with sent params.
+
 **PageLive:** LiveView that handles events and params.
 
 
