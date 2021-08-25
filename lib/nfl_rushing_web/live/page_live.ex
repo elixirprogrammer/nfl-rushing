@@ -1,39 +1,68 @@
 defmodule NflRushingWeb.PageLive do
   use NflRushingWeb, :live_view
 
+  alias NflRushing.Rushing
+
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, query: "", results: %{})}
+    rushing_json = Rushing.get_all
+    table_attributes = Rushing.get_attributes
+
+    {:ok,
+      socket
+      |> assign(table_attributes: table_attributes)
+      |> assign(rushing_json: rushing_json)}
+  end
+
+
+  @impl true
+  def handle_event("filter-player", %{"player" => player}, socket) do
+    players = Rushing.get_players(player)
+    params = [player: player]
+
+    {:noreply,
+      socket
+      |> assign(download_path: Routes.page_path(socket, :csv, params))
+      |> assign(rushing_json: players)}
   end
 
   @impl true
-  def handle_event("suggest", %{"q" => query}, socket) do
-    {:noreply, assign(socket, results: search(query), query: query)}
+  def handle_params(params, _uri, socket) do
+    sort_by = params["sort_by"]
+    sort_order = (params["order"] || "asc") |> String.to_atom()
+    rushing_json = Rushing.sort_by(sort_by, sort_order)
+    params = [sort_by: sort_by, order: sort_order]
+
+    {:noreply,
+      socket
+      |> assign(sort_order: sort_order)
+      |> assign(sort_by: sort_by)
+      |> assign(download_path: Routes.page_path(socket, :csv, params))
+      |> assign(rushing_json: rushing_json)}
   end
 
-  @impl true
-  def handle_event("search", %{"q" => query}, socket) do
-    case search(query) do
-      %{^query => vsn} ->
-        {:noreply, redirect(socket, external: "https://hexdocs.pm/#{query}/#{vsn}")}
+  defp sort_link(socket, attribute, sort_by, sort_order) do
+    text =
+      if sort_by == attribute do
+        attribute <> emoji(sort_order)
+      else
+        attribute
+      end
 
-      _ ->
-        {:noreply,
-         socket
-         |> put_flash(:error, "No dependencies found matching \"#{query}\"")
-         |> assign(results: %{}, query: query)}
-    end
+    live_patch(text,
+      to: Routes.page_path(
+        socket,
+        :index,
+        sort_by: attribute,
+        order: toggle_sort_order(sort_order)
+      )
+    )
   end
 
-  defp search(query) do
-    if not NflRushingWeb.Endpoint.config(:code_reloader) do
-      raise "action disabled when not in development"
-    end
+  defp toggle_sort_order(:asc), do: :desc
+  defp toggle_sort_order(:desc), do: :asc
 
-    for {app, desc, vsn} <- Application.started_applications(),
-        app = to_string(app),
-        String.starts_with?(app, query) and not List.starts_with?(desc, ~c"ERTS"),
-        into: %{},
-        do: {app, vsn}
-  end
+  defp emoji(:asc), do: "👇"
+  defp emoji(:desc), do: "👆"
+
 end

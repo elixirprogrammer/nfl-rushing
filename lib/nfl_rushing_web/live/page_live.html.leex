@@ -1,48 +1,32 @@
-<section class="phx-hero">
-  <h1><%= gettext "Welcome to %{name}!", name: "Phoenix" %></h1>
-  <p>Peace of mind from prototype to production</p>
+<form phx-change="filter-player" phx-submit="search-player">
+  <fieldset>
+    <label for="player">Player</label>
+    <input type="text" name="player" placeholder="Sam Koch"
+        autocomplete="off">
+  </fieldset>
+</form>
 
-  <form phx-change="suggest" phx-submit="search">
-    <input type="text" name="q" value="<%= @query %>" placeholder="Live dependency search" list="results" autocomplete="off"/>
-    <datalist id="results">
-      <%= for {app, _vsn} <- @results do %>
-        <option value="<%= app %>"><%= app %></option>
+<a href="<%= @download_path %>" class="button button-outline float-right" download>
+  Download CSV
+</a>
+
+<table>
+  <thead>
+    <tr>
+      <%= for a <- @table_attributes do %>
+        <th>
+          <%= sort_link(@socket, a, @sort_by, @sort_order) %>
+        </th>
       <% end %>
-    </datalist>
-    <button type="submit" phx-disable-with="Searching...">Go to Hexdocs</button>
-  </form>
-</section>
-
-<section class="row">
-  <article class="column">
-    <h2>Resources</h2>
-    <ul>
-      <li>
-        <a href="https://hexdocs.pm/phoenix/overview.html">Guides &amp; Docs</a>
-      </li>
-      <li>
-        <a href="https://github.com/phoenixframework/phoenix">Source</a>
-      </li>
-      <li>
-        <a href="https://github.com/phoenixframework/phoenix/blob/v1.5/CHANGELOG.md">v1.5 Changelog</a>
-      </li>
-    </ul>
-  </article>
-  <article class="column">
-    <h2>Help</h2>
-    <ul>
-      <li>
-        <a href="https://elixirforum.com/c/phoenix-forum">Forum</a>
-      </li>
-      <li>
-        <a href="https://webchat.freenode.net/?channels=elixir-lang">#elixir-lang on Freenode IRC</a>
-      </li>
-      <li>
-        <a href="https://twitter.com/elixirphoenix">Twitter @elixirphoenix</a>
-      </li>
-      <li>
-        <a href="https://elixir-slackin.herokuapp.com/">Elixir on Slack</a>
-      </li>
-    </ul>
-  </article>
-</section>
+    </tr>
+  </thead>
+  <tbody>
+    <%= for player <- @rushing_json do %>
+      <tr>
+        <%= for a <- @table_attributes do %>
+          <td><%= player[a] %></td>
+        <% end %>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
